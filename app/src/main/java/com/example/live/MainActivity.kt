@@ -6,8 +6,12 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -15,11 +19,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.Text
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -40,20 +41,43 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             LiveTheme {
+                var isGenerating by remember { mutableStateOf(true) }
+
                 // A surface container using the 'background' color from the theme
                 Scaffold(
                     floatingActionButton = {
-                        FloatingActionButton(
-                            onClick = { /*TODO*/ }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Rounded.Settings,
-                                contentDescription = null,
-                            )
+                        Row {
+                            FloatingActionButton(
+                                onClick = { /* TODO */ }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Rounded.Settings,
+                                    contentDescription = null,
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.width(16.dp))
+
+                            if (isGenerating) {
+                                FloatingActionButton(
+                                    onClick = { isGenerating = false }
+                                ) {
+                                    Text("Stop")
+                                }
+                            } else {
+                                FloatingActionButton(
+                                    onClick = { isGenerating = true }
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Rounded.PlayArrow,
+                                        contentDescription = null,
+                                    )
+                                }
+                            }
                         }
                     }
                 ) {
-                    Surface(
+                Surface(
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(it),
@@ -64,7 +88,7 @@ class MainActivity : ComponentActivity() {
                                 screenWidthDp.dp.toPx() to screenHeightDp.dp.toPx()
                             }
                         }
-                        val gridSize = 10f
+                        val gridSize = 50f
                         val generateSpeed = 100L
 
                         val (n, m) = (screenHeight / gridSize).roundToInt() to (screenWidth / gridSize).roundToInt()
@@ -79,19 +103,21 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        LaunchedEffect(key1 = false) {
-                            generateGlider(generate)
+                        LaunchedEffect(key1 = isGenerating) {
                             while (true) {
-                                generate = calculateNextGeneration(generate)
+                                if (isGenerating) {
+                                    generateGlider(generate)
+                                    generate = calculateNextGeneration(generate)
+                                }
                                 delay(generateSpeed)
                             }
                         }
+
                         Canvas(
                             modifier = Modifier
                                 .background(Color.White)
                                 .fillMaxSize()
                         ) {
-
                             generate.forEachIndexed { i, m ->
                                 m.forEachIndexed { j, v ->
                                     if (v) {
